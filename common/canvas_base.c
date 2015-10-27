@@ -1195,6 +1195,9 @@ static pixman_image_t *canvas_get_image_internal(CanvasBase *canvas, SpiceImage 
         surface = canvas_get_bits(canvas, &image->u.bitmap, want_original);
         break;
     }
+    case SPICE_IMAGE_TYPE_AST:
+        return NULL;//image->u.ast.data;
+
     default:
         spice_warn_if_reached();
         return NULL;
@@ -2277,6 +2280,7 @@ static void canvas_draw_copy(SpiceCanvas *spice_canvas, SpiceRect *bbox, SpiceCl
         }
     } else {
         src_image = canvas_get_image(canvas, copy->src_bitmap, FALSE);
+        if (src_image != NULL) {
         spice_return_if_fail(src_image != NULL);
 
         if (rect_is_same_size(bbox, &copy->src_area)) {
@@ -2321,6 +2325,7 @@ static void canvas_draw_copy(SpiceCanvas *spice_canvas, SpiceRect *bbox, SpiceCl
             }
         }
         pixman_image_unref(src_image);
+        }
     }
     pixman_region32_fini(&dest_region);
 }

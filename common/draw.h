@@ -120,7 +120,7 @@ typedef struct SpiceSurface {
 typedef struct SpiceQUICData {
     uint32_t data_size;
     SpiceChunks *data;
-} SpiceQUICData, SpiceLZRGBData, SpiceJPEGData, SpiceLZ4Data;
+} SpiceQUICData, SpiceLZRGBData, SpiceJPEGData, SpiceLZ4Data, SpiceASTData;
 
 typedef struct SpiceLZPLTData {
     uint8_t flags;
@@ -156,6 +156,7 @@ typedef struct SpiceImage {
         SpiceLZ4Data        lz4;
         SpiceZlibGlzRGBData zlib_glz;
         SpiceJPEGAlphaData  jpeg_alpha;
+        SpiceASTData        ast;
     } u;
 } SpiceImage;
 

@@ -69,7 +69,7 @@ flags32 mouse_mode {
     CLIENT,
 };
 
-enum16 pubkey_type {
+enum32 pubkey_type {
     INVALID,
     RSA,
     RSA2,
@@ -90,8 +90,8 @@ message Data {
 } @nocopy;
 
 struct ChannelWait {
-    uint8 channel_type;
-    uint8 channel_id;
+    uint16 channel_type;
+    uint16 channel_id;
     uint64 message_serial;
 } @ctype(SpiceWaitForChannel);
 
@@ -115,7 +115,7 @@ channel BaseChannel {
     } ping;
 
     message {
-	uint8 wait_count;
+	uint32 wait_count;
 	ChannelWait wait_list[wait_count] @end;
     } wait_for_channels;
 
@@ -131,7 +131,7 @@ channel BaseChannel {
 	uint32 what; /* error_code/warn_code/info_code */
 	uint32 message_len;
 	uint8 message[message_len] @end @nomarshal;
-	uint8 zero @end @ctype(uint8_t) @nomarshal;
+	uint32 zero @end @ctype(uint8_t) @nomarshal;
     } notify;
 
  client:
@@ -157,8 +157,8 @@ channel BaseChannel {
 };
 
 struct ChannelId {
-    uint8 type;
-    uint8 id;
+    uint16 type;
+    uint16 id;
 };
 
 struct DstInfo {
@@ -281,13 +281,14 @@ enum32 brush_type {
     PATTERN,
 };
 
-flags8 mask_flags {
+flags32 mask_flags {
     INVERS,
 };
 
-enum8 image_type {
+enum32 image_type {
     BITMAP,
     QUIC,
+    AST,
     RESERVED,
     LZ_PLT = 100,
     LZ_RGB,
@@ -295,11 +296,11 @@ enum8 image_type {
     FROM_CACHE,
 };
 
-flags8 image_flags {
+flags32 image_flags {
     CACHE_ME,
 };
 
-enum8 bitmap_fmt {
+enum32 bitmap_fmt {
     INVALID,
     1BIT_LE,
     1BIT_BE,
@@ -312,18 +313,18 @@ enum8 bitmap_fmt {
     RGBA /* 4 byte, argb in little endian format */
 };
 
-flags8 bitmap_flags {
+flags32 bitmap_flags {
     PAL_CACHE_ME,
     PAL_FROM_CACHE,
     TOP_DOWN,
 };
 
-enum8 image_scale_mode {
+enum32 image_scale_mode {
     INTERPOLATE,
     NEAREST,
 };
 
-flags16 ropd {
+flags32 ropd {
     INVERS_SRC,
     INVERS_BRUSH,
     INVERS_DEST,
@@ -337,31 +338,31 @@ flags16 ropd {
     INVERS_RES,
 };
 
-flags8 line_flags {
+flags32 line_flags {
     STYLED = 3,
     START_WITH_GAP = 2,
 };
 
-enum8 line_cap {
+enum32 line_cap {
     ROUND,
     SQUARE,
     BUTT,
 };
 
-enum8 line_join {
+enum32 line_join {
     ROUND,
     BEVEL,
     MITER,
 };
 
-flags16 string_flags {
+flags32 string_flags {
     RASTER_A1,
     RASTER_A4,
     RASTER_A8,
     RASTER_TOP_DOWN,
 };
 
-enum8 resource_type {
+enum32 resource_type {
       INVALID,
       PIXMAP
 } @prefix(SPICE_RES_TYPE_);
@@ -399,19 +400,19 @@ struct DisplayBase {
 } @ctype(SpiceMsgDisplayBase);
 
 struct ResourceID {
-    uint8 type;
+    uint32 type;
     uint64 id;
 };
 
 struct WaitForChannel {
-    uint8 channel_type;
-    uint8 channel_id;
+    uint16 channel_type;
+    uint16 channel_id;
     uint64 message_serial;
 };
 
 struct Palette {
     uint64 unique;
-    uint16 num_ents;
+    uint32 num_ents;
     uint32 ents[num_ents] @end;
 };
 
@@ -434,6 +435,11 @@ struct BinaryData {
     uint32 data_size;
     uint8 data[data_size] @nomarshal @chunk;
 } @ctype(SpiceQUICData);
+
+struct ASTData {
+    uint32 data_size;
+    uint8 *data[data_size] @chunk;
+} @ctype(SpiceASTData);
 
 struct LZPLTData {
     bitmap_flags flags;
@@ -461,6 +467,8 @@ struct Image {
         BitmapData bitmap;
     case QUIC:
         BinaryData quic;
+    case AST:
+        ASTData ast;
     case LZ_RGB:
     case GLZ_RGB:
         BinaryData lz_rgb;
@@ -494,7 +502,7 @@ struct LineAttr {
     line_flags flags;
     line_join join_style @zero;
     line_cap end_style @zero;
-    uint8 style_nseg;
+    uint32 style_nseg;
     fixed28_4 width @zero;
     fixed28_4 miter_limit @zero;
     fixed28_4 *style[style_nseg];
@@ -525,7 +533,7 @@ struct RasterGlyphA8 {
 } @ctype(SpiceRasterGlyph);
 
 struct String {
-    uint16 length;
+    uint32 length;
     string_flags flags; /* Special: Only one of a1/a4/a8 set */
     switch (flags) {
     case RASTER_A1:
@@ -559,12 +567,12 @@ channel DisplayChannel : BaseChannel {
     } copy_bits;
 
     message {
-	uint16 count;
+	uint32 count;
 	ResourceID resources[count] @end;
     } @ctype(SpiceResourceList) inval_list;
 
     message {
-	uint8 wait_count;
+	uint32 wait_count;
 	WaitForChannel wait_list[wait_count] @end;
     } @ctype(SpiceMsgWaitForChannels) inval_all_pixmaps;
 
@@ -677,7 +685,7 @@ channel DisplayChannel : BaseChannel {
 	    Image *src_bitmap;
 	    Rect src_area;
 	    Brush brush;
-	    uint8 rop3;
+	    uint32 rop3;
 	    image_scale_mode scale_mode;
 	    QMask mask @outvar(mask);
 	} data;
@@ -719,8 +727,8 @@ channel DisplayChannel : BaseChannel {
     message {
 	DisplayBase base;
 	struct AlphaBlend {
-	    int8 alpha_flags @virtual(0);
-	    uint8 alpha;
+	    int16 alpha_flags @virtual(0);
+	    uint16 alpha;
 	    Image *src_bitmap;
 	    Rect src_area;
 	} data;
@@ -728,9 +736,9 @@ channel DisplayChannel : BaseChannel {
 
  client:
     message {
-	uint8 pixmap_cache_id;
+	uint32 pixmap_cache_id;
 	int64 pixmap_cache_size; //in pixels
-	uint8 glz_dictionary_id;
+	uint32 glz_dictionary_id;
 	int32 glz_dictionary_window_size;  // in pixels
     } init = 101;
 };
@@ -780,7 +788,7 @@ channel InputsChannel : BaseChannel {
 	uint32 x;
 	uint32 y;
 	mouse_button_mask buttons_state;
-	uint8 display_id;
+	uint32 display_id;
     } @ctype(SpiceMsgcMousePosition) mouse_position;
 
     message {
@@ -805,7 +813,7 @@ channel InputsChannel : BaseChannel {
     Empty mouse_motion_ack = 111;
 };
 
-enum16 cursor_type {
+enum32 cursor_type {
     ALPHA,
     MONO,
     COLOR4,
@@ -842,7 +850,7 @@ channel CursorChannel : BaseChannel {
 	Point16 position;
 	uint16 trail_length;
 	uint16 trail_frequency;
-	uint8 visible;
+	uint32 visible;
 	Cursor cursor;
     } init = 101;
 
@@ -850,7 +858,7 @@ channel CursorChannel : BaseChannel {
 
     message {
 	Point16 position;
-	uint8 visible;
+	uint32 visible;
 	Cursor cursor;
     } set;
 
