@@ -18,8 +18,6 @@ BUILT_SOURCES = $(CLIENT_MARSHALLERS) $(SERVER_MARSHALLERS)
 
 noinst_LTLIBRARIES = libspice-common.la libspice-common-server.la libspice-common-client.la
 libspice_common_la_SOURCES =		\
-	aspeed-jtables.h		\
-	aspeed.c			\
 	backtrace.c			\
 	backtrace.h			\
 	bitops.h			\
@@ -67,10 +65,12 @@ libspice_common_la_SOURCES =		\
 # know that these are source files so that it can properly
 # track these files dependencies
 EXTRA_libspice_common_la_SOURCES = 	\
-	sw_canvas.c			\
-	sw_canvas.h			\
+	aspeed.c			\
+	aspeed-jtables.h		\
 	pt_canvas.c			\
 	pt_canvas.h			\
+	sw_canvas.c			\
+	sw_canvas.h			\
 	$(NULL)
 
 libspice_common_client_la_SOURCES =		\
