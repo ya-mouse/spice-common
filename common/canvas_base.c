@@ -374,6 +374,8 @@ static pixman_format_code_t canvas_get_target_format(CanvasBase *canvas,
     return format;
 }
 
+#include "aspeed.c"
+
 static pixman_image_t *canvas_get_quic(CanvasBase *canvas, SpiceImage *image,
                                        int want_original)
 {
@@ -1195,6 +1197,9 @@ static pixman_image_t *canvas_get_image_internal(CanvasBase *canvas, SpiceImage 
         surface = canvas_get_bits(canvas, &image->u.bitmap, want_original);
         break;
     }
+    case SPICE_IMAGE_TYPE_AST:
+        return canvas_get_aspeed(canvas, image);
+
     default:
         spice_warn_if_reached();
         return NULL;
@@ -3581,10 +3586,12 @@ static int canvas_base_init(CanvasBase *canvas, SpiceCanvasOps *ops,
 
     canvas->width = width;
     canvas->height = height;
+#ifndef PT_CANVAS_REGION
     pixman_region32_init_rect(&canvas->canvas_region,
                               0, 0,
                               canvas->width,
                               canvas->height);
+#endif
 
     canvas->bits_cache = bits_cache;
 #ifdef SW_CANVAS_CACHE
