@@ -84,7 +84,22 @@ static void pt_canvas_draw_opaque(SpiceCanvas *spice_canvas, SpiceRect *bbox, Sp
 static void pt_canvas_draw_alpha_blend(SpiceCanvas *spice_canvas, SpiceRect *bbox, SpiceClip *clip, SpiceAlphaBlend *alpha_blend)
 {
     PTCanvas *canvas = (PTCanvas *)spice_canvas;
-    printf("=== %s: \n", __func__);
+    SpiceImage *image = alpha_blend->src_bitmap;
+    printf("=== %s(%p): new=%p\n", __func__, canvas->frame, alpha_blend->src_bitmap);
+
+    if (canvas->frame)
+        free(canvas->frame);
+
+    if (image->descriptor.type == SPICE_IMAGE_TYPE_AST) {
+        canvas->frame = malloc(image->u.ast.data_size);
+        canvas->frame_size = image->u.ast.data_size;
+        memcpy(canvas->frame, image->u.ast.data->chunk[0].data, canvas->frame_size);
+//        printf("-- %p [%x] << %p\n", canvas->frame, canvas->frame_size, image->u.ast.data->chunk[0].data);
+//        ast_dump(canvas->frame, 128);
+    } else {
+        canvas->frame = NULL;
+        canvas->frame_size = NULL;
+    }
 }
 
 static void pt_canvas_draw_blend(SpiceCanvas *spice_canvas, SpiceRect *bbox, SpiceClip *clip, SpiceBlend *blend)
